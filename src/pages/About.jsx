@@ -9,18 +9,18 @@ const About = () => {
       <Navbar />
 
       {/* Why Choose Section */}
-      <section style={{ padding: '8rem 0 4rem' }}>
+      <section style={{ padding: 'var(--mobile-padding, 8rem 0 4rem)' }} className="about-hero-section">
         <div className="container">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <p style={{ color: 'var(--gold-dark)', textTransform: 'uppercase', fontSize: '0.875rem', letterSpacing: '0.15em', marginBottom: '1rem', fontWeight: 600 }}>
               Our Commitment
             </p>
-            <h1 style={{ fontSize: '3.5rem', marginBottom: '4rem', color: '#3E2723', fontFamily: 'Playfair Display, serif', maxWidth: '600px', lineHeight: 1.1 }}>
+            <h1 className="about-title" style={{ fontSize: '3.5rem', marginBottom: '4rem', color: '#3E2723', fontFamily: 'Playfair Display, serif', maxWidth: '600px', lineHeight: 1.1 }}>
               Why Choose<br/>Siddhivinayak
             </h1>
           </motion.div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2rem' }}>
+          <div className="about-grid">
             {/* Card 1 */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
@@ -67,14 +67,15 @@ const About = () => {
       </section>
 
       {/* Mission Vision Values */}
-      <section style={{ padding: '4rem 0 8rem' }}>
+      <section style={{ padding: '4rem 0 8rem' }} className="mission-section">
         <div className="container">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0' }}>
+          <div className="mission-grid">
             
             {/* Mission */}
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
-              style={{ background: 'var(--white)', padding: '4rem 3rem', borderRadius: '16px 0 0 16px', borderTop: '1px solid #F0E6D2', borderBottom: '1px solid #F0E6D2', borderLeft: '4px solid #D46A40', boxShadow: '-10px 10px 40px rgba(0,0,0,0.02)' }}
+              className="mission-card mission-card-first"
+              style={{ background: 'var(--white)', padding: '4rem 3rem', borderTop: '1px solid #F0E6D2', borderBottom: '1px solid #F0E6D2', borderLeft: '4px solid #D46A40', boxShadow: '-10px 10px 40px rgba(0,0,0,0.02)' }}
             >
               <h3 style={{ fontSize: '2rem', color: '#D46A40', marginBottom: '1.5rem', fontFamily: 'Playfair Display, serif', fontWeight: 500 }}>
                 Our Mission
@@ -87,6 +88,7 @@ const About = () => {
             {/* Vision */}
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: 0.2 }}
+              className="mission-card"
               style={{ background: '#FAF6EF', padding: '4rem 3rem', borderTop: '1px solid #F0E6D2', borderBottom: '1px solid #F0E6D2', borderLeft: '2px solid #D46A40', boxShadow: '0 10px 40px rgba(0,0,0,0.02)' }}
             >
               <h3 style={{ fontSize: '2rem', color: '#D46A40', marginBottom: '1.5rem', fontFamily: 'Playfair Display, serif', fontWeight: 500 }}>
@@ -100,7 +102,8 @@ const About = () => {
             {/* Values */}
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: 0.3 }}
-              style={{ background: 'var(--white)', padding: '4rem 3rem', borderRadius: '0 16px 16px 0', borderTop: '1px solid #F0E6D2', borderBottom: '1px solid #F0E6D2', borderLeft: '2px solid #D46A40', borderRight: '1px solid #F0E6D2', boxShadow: '10px 10px 40px rgba(0,0,0,0.02)' }}
+              className="mission-card mission-card-last"
+              style={{ background: 'var(--white)', padding: '4rem 3rem', borderTop: '1px solid #F0E6D2', borderBottom: '1px solid #F0E6D2', borderLeft: '2px solid #D46A40', borderRight: '1px solid #F0E6D2', boxShadow: '10px 10px 40px rgba(0,0,0,0.02)' }}
             >
               <h3 style={{ fontSize: '2rem', color: '#D46A40', marginBottom: '1.5rem', fontFamily: 'Playfair Display, serif', fontWeight: 500 }}>
                 Our Values
@@ -113,6 +116,31 @@ const About = () => {
           </div>
         </div>
       </section>
+
+      <style>{`
+        .about-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 2rem;
+        }
+
+        .mission-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 0;
+        }
+
+        .mission-card-first { border-radius: 16px 0 0 16px; }
+        .mission-card-last { border-radius: 0 16px 16px 0; }
+
+        @media (max-width: 991px) {
+          .about-title { font-size: 2.5rem !important; }
+          .about-grid, .mission-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+          .mission-card { border-radius: 16px !important; border-right: 1px solid #F0E6D2 !important; padding: 2.5rem !important; }
+          .about-hero-section { padding: 5rem 0 2rem !important; }
+          .mission-section { padding: 2rem 0 5rem !important; }
+        }
+      `}</style>
 
       <Footer />
     </div>

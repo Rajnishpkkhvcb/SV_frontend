@@ -7,6 +7,7 @@ const Navbar = () => {
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [projects, setProjects] = useState({ residential: [], commercial: [] });
 
   useEffect(() => {
@@ -26,16 +27,21 @@ const Navbar = () => {
     fetchProjects();
   }, [isAdmin]);
 
-  if (isAdmin) return null; // Don't show public navbar in admin pages
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  if (isAdmin) return null;
 
   return (
     <nav style={{
       background: 'var(--white)',
-      padding: '1.25rem 2rem',
+      padding: '1rem 2rem',
       borderBottom: '1px solid var(--border-color)',
       position: 'sticky',
       top: 0,
-      zIndex: 100,
+      zIndex: 1000,
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
@@ -46,10 +52,9 @@ const Navbar = () => {
       </Link>
 
       {/* Desktop Menu */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '2.5rem' }} className="nav-menu">
+      <div className="desktop-menu" style={{ display: 'flex', alignItems: 'center', gap: '2.5rem' }}>
         <Link to="/" style={{ fontSize: '0.875rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: location.pathname === '/' ? 'var(--gold-dark)' : 'var(--text-secondary)' }}>HOME</Link>
         
-        {/* Projects Dropdown */}
         <div 
           style={{ position: 'relative', padding: '1rem 0' }}
           onMouseEnter={() => setShowDropdown(true)}
@@ -75,7 +80,7 @@ const Navbar = () => {
           </Link>
 
           {/* Mega Menu Dropdown */}
-          <div style={{
+          <div className="mega-menu" style={{
             position: 'absolute',
             top: '100%',
             left: '50%',
@@ -84,7 +89,6 @@ const Navbar = () => {
             visibility: showDropdown ? 'visible' : 'hidden',
             background: 'rgba(10, 10, 10, 0.9)',
             backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
             color: 'var(--white)',
             width: '600px',
             borderRadius: '12px',
@@ -97,51 +101,170 @@ const Navbar = () => {
             transition: 'all 0.3s ease',
             pointerEvents: showDropdown ? 'auto' : 'none'
           }}>
-            {/* Residential Column */}
             <div>
-              <h3 style={{ color: 'var(--white)', fontSize: '1.25rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>Residential</h3>
-              <ul style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                {projects.residential.slice(0, 5).map(p => (
+              <h3 style={{ color: 'var(--white)', fontSize: '1.15rem', marginBottom: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>Residential</h3>
+              <ul style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {projects.residential.slice(0, 4).map(p => (
                   <li key={p.id}>
                     <Link to={`/project/${p.slug}`} style={{ display: 'block' }}>
-                      <span style={{ color: 'var(--white)', fontSize: '0.95rem', display: 'block', transition: 'color 0.2s' }} className="dropdown-link">{p.name}</span>
-                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>{p.location}</span>
+                      <span style={{ color: 'var(--white)', fontSize: '0.9rem', display: 'block' }} className="dropdown-link">{p.name}</span>
+                      <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.7rem' }}>{p.location}</span>
                     </Link>
                   </li>
                 ))}
-                {projects.residential.length === 0 && <li style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>No projects found</li>}
-                {projects.residential.length > 5 && (
-                  <li><Link to="/projects" style={{ color: 'var(--gold-dark)', fontSize: '0.875rem', fontWeight: 600 }}>View all &rarr;</Link></li>
-                )}
+                <li><Link to="/projects" style={{ color: 'var(--gold-dark)', fontSize: '0.875rem', fontWeight: 600 }}>View All Residential &rarr;</Link></li>
               </ul>
             </div>
-
-            {/* Commercial Column */}
             <div>
-              <h3 style={{ color: 'var(--white)', fontSize: '1.25rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>Commercial</h3>
-              <ul style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                {projects.commercial.slice(0, 5).map(p => (
+              <h3 style={{ color: 'var(--white)', fontSize: '1.15rem', marginBottom: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>Commercial</h3>
+              <ul style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {projects.commercial.slice(0, 4).map(p => (
                   <li key={p.id}>
                     <Link to={`/project/${p.slug}`} style={{ display: 'block' }}>
-                      <span style={{ color: 'var(--white)', fontSize: '0.95rem', display: 'block', transition: 'color 0.2s' }} className="dropdown-link">{p.name}</span>
-                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>{p.location}</span>
+                      <span style={{ color: 'var(--white)', fontSize: '0.9rem', display: 'block' }} className="dropdown-link">{p.name}</span>
+                      <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.7rem' }}>{p.location}</span>
                     </Link>
                   </li>
                 ))}
-                {projects.commercial.length === 0 && <li style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>No projects found</li>}
-                {projects.commercial.length > 5 && (
-                  <li><Link to="/projects" style={{ color: 'var(--gold-dark)', fontSize: '0.875rem', fontWeight: 600 }}>View all &rarr;</Link></li>
-                )}
+                <li><Link to="/projects" style={{ color: 'var(--gold-dark)', fontSize: '0.875rem', fontWeight: 600 }}>View All Commercial &rarr;</Link></li>
               </ul>
             </div>
           </div>
         </div>
 
         <Link to="/about" style={{ fontSize: '0.875rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: location.pathname === '/about' ? 'var(--gold-dark)' : 'var(--text-secondary)' }}>ABOUT</Link>
-        <button onClick={(e) => { e.preventDefault(); window.dispatchEvent(new Event('open-contact')); }} className="btn btn-primary" style={{ textDecoration: 'none', border: 'none', cursor: 'pointer' }}>GET IN TOUCH</button>
+        <button onClick={() => window.dispatchEvent(new Event('open-contact'))} className="btn btn-primary" style={{ border: 'none', cursor: 'pointer', padding: '0.75rem 1.5rem' }}>GET IN TOUCH</button>
+      </div>
+
+      {/* Hamburger Toggle */}
+      <button 
+        className="mobile-toggle"
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        aria-label="Toggle menu"
+        style={{
+          display: 'none',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          padding: '8px',
+          zIndex: 1001
+        }}
+      >
+        <div style={{
+          width: '24px',
+          height: '2px',
+          background: 'var(--text-primary)',
+          marginBottom: '6px',
+          transition: '0.3s',
+          transform: isMobileMenuOpen ? 'translateY(8px) rotate(45deg)' : 'none'
+        }} />
+        <div style={{
+          width: '24px',
+          height: '2px',
+          background: 'var(--text-primary)',
+          marginBottom: '6px',
+          opacity: isMobileMenuOpen ? 0 : 1,
+          transition: '0.3s'
+        }} />
+        <div style={{
+          width: '24px',
+          height: '2px',
+          background: 'var(--text-primary)',
+          transition: '0.3s',
+          transform: isMobileMenuOpen ? 'translateY(-8px) rotate(-45deg)' : 'none'
+        }} />
+      </button>
+
+      {/* Mobile Menu Overlay */}
+      <div className={`mobile-menu ${isMobileMenuOpen ? 'open' : ''}`} style={{
+        position: 'fixed',
+        top: 0,
+        right: 0,
+        width: '100%',
+        height: '100vh',
+        background: 'var(--white)',
+        zIndex: 1000,
+        padding: '80px 2rem 2rem',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1.5rem',
+        overflowY: 'auto',
+        transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        transform: isMobileMenuOpen ? 'translateX(0)' : 'translateX(100%)'
+      }}>
+        <Link to="/" className="mobile-link">HOME</Link>
+        
+        {/* Mobile Projects Accordion */}
+        <div style={{ borderBottom: '1px solid var(--border-color)' }}>
+          <div 
+            onClick={() => setShowDropdown(!showDropdown)}
+            style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              padding: '0.5rem 0',
+              cursor: 'pointer'
+            }}
+          >
+            <span className="mobile-link" style={{ border: 'none', padding: 0 }}>PROJECTS</span>
+            <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ transform: showDropdown ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.3s' }}>
+              <path d="M1 1L6 6L11 1" stroke="var(--text-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          
+          <div style={{ 
+            maxHeight: showDropdown ? '500px' : '0', 
+            overflow: 'hidden', 
+            transition: 'max-height 0.4s ease',
+            paddingLeft: '1rem'
+          }}>
+            <div style={{ padding: '1rem 0', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <Link to="/projects" style={{ color: 'var(--gold-dark)', fontWeight: 600, textDecoration: 'none' }}>View All Projects</Link>
+              <div style={{ marginTop: '0.5rem' }}>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>Residential</p>
+                {projects.residential.slice(0, 3).map(p => (
+                  <Link key={p.id} to={`/project/${p.slug}`} style={{ display: 'block', padding: '0.5rem 0', color: 'var(--text-primary)', textDecoration: 'none' }}>{p.name}</Link>
+                ))}
+              </div>
+              <div style={{ marginTop: '0.5rem' }}>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>Commercial</p>
+                {projects.commercial.slice(0, 3).map(p => (
+                  <Link key={p.id} to={`/project/${p.slug}`} style={{ display: 'block', padding: '0.5rem 0', color: 'var(--text-primary)', textDecoration: 'none' }}>{p.name}</Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <Link to="/about" className="mobile-link">ABOUT US</Link>
+        <button 
+          onClick={() => {
+            setIsMobileMenuOpen(false);
+            window.dispatchEvent(new Event('open-contact'));
+          }} 
+          className="btn btn-primary"
+          style={{ marginTop: 'auto', padding: '1.25rem', flexShrink: 0 }}
+        >
+          GET IN TOUCH
+        </button>
       </div>
 
       <style>{`
+        @media (max-width: 991px) {
+          .desktop-menu { display: none !important; }
+          .mobile-toggle { display: block !important; }
+        }
+
+        .mobile-link {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: var(--text-primary);
+          text-decoration: none;
+          letter-spacing: -0.02em;
+          padding: 0.5rem 0;
+          border-bottom: 1px solid var(--border-color);
+        }
+
         .dropdown-link:hover {
           color: var(--gold-primary) !important;
         }
