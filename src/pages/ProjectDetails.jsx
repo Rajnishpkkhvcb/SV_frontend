@@ -1,10 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Building2, Calendar, FileText, X, ChevronRight, CheckCircle2, Download, Phone, Mail, User, Info, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { MapPin, Building2, Calendar, FileText, X, ChevronLeft, ChevronRight, CheckCircle2, Download, Phone, Mail, User, Info, Sparkles, Image as ImageIcon } from 'lucide-react';
 import api from '../config/api';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+
+const ImageWithLoader = ({ src, alt, style }) => {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+  }, [src]);
+
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {loading && (
+        <div style={{ position: 'absolute', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
+          <motion.div 
+            animate={{ rotate: 360 }} 
+            transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} 
+            style={{ width: '40px', height: '40px', border: '3px solid rgba(255,255,255,0.1)', borderTopColor: 'var(--gold-primary)', borderRadius: '50%' }} 
+          />
+        </div>
+      )}
+      <img 
+        src={src} 
+        alt={alt} 
+        onLoad={() => setLoading(false)}
+        style={{ 
+          ...style, 
+          opacity: loading ? 0 : 1, 
+          transition: 'opacity 0.4s ease' 
+        }} 
+      />
+    </div>
+  );
+};
 
 const ProjectDetails = () => {
   const { slug } = useParams();
@@ -15,6 +47,8 @@ const ProjectDetails = () => {
   // Gallery Modal
   const [showGallery, setShowGallery] = useState(false);
   const [activeImg, setActiveImg] = useState(0);
+  const [lightboxImages, setLightboxImages] = useState([]);
+  const [lightboxTitle, setLightboxTitle] = useState("");
 
   // Brochure form state
   const [brochureForm, setBrochureForm] = useState({ name: '', email: '', phone: '' });
@@ -177,9 +211,10 @@ const ProjectDetails = () => {
                         backgroundColor: '#F3ECE3'
                       }}
                       onClick={() => {
-                        // Optionally open in gallery or separate viewer
+                        setLightboxImages(project.layoutImageUrls || []);
+                        setLightboxTitle("Floor Plans");
+                        setActiveImg(i);
                         setShowGallery(true);
-                        // find index of this layout in the total gallery list if you want to integrate
                       }}
                     >
                       <img src={layout} alt={`Layout ${i + 1}`} className="lazy-image" onLoad={(e) => e.target.classList.add('loaded')} style={{ width: '100%', height: 'auto', borderRadius: '12px' }} />
@@ -195,7 +230,15 @@ const ProjectDetails = () => {
               <div style={{ marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
                   <h2 style={{ fontSize: '2.25rem', fontFamily: 'Playfair Display', color: 'var(--text-primary)' }}>Project Gallery</h2>
-                  <button onClick={() => setShowGallery(true)} style={{ color: 'var(--gold-dark)', fontWeight: 600, fontSize: '0.95rem', background: 'none', border: 'none', textDecoration: 'underline', textUnderlineOffset: '6px' }}>
+                  <button 
+                    onClick={() => {
+                      setLightboxImages(galleryImages);
+                      setLightboxTitle("Project Gallery");
+                      setActiveImg(0);
+                      setShowGallery(true);
+                    }} 
+                    style={{ color: 'var(--gold-dark)', fontWeight: 600, fontSize: '0.95rem', background: 'none', border: 'none', textDecoration: 'underline', textUnderlineOffset: '6px', cursor: 'pointer' }}
+                  >
                     Expand Gallery
                   </button>
                 </div>
@@ -203,7 +246,12 @@ const ProjectDetails = () => {
                   {displayImages.map((img, idx) => (
                     <div 
                       key={idx} 
-                      onClick={() => { setShowGallery(true); setActiveImg(idx); }}
+                      onClick={() => {
+                        setLightboxImages(galleryImages);
+                        setLightboxTitle("Project Gallery");
+                        setActiveImg(idx);
+                        setShowGallery(true);
+                      }}
                       style={{ height: '300px', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer', position: 'relative', backgroundColor: '#F3ECE3' }}
                     >
                       <img src={img} alt={`Gallery ${idx}`} className="lazy-image" onLoad={(e) => e.target.classList.add('loaded')} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -299,30 +347,127 @@ const ProjectDetails = () => {
 
       {/* Gallery Lightbox */}
       <AnimatePresence>
-        {showGallery && (
+        {showGallery && lightboxImages.length > 0 && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.98)', display: 'flex', flexDirection: 'column' }}
+            style={{ 
+              position: 'fixed', 
+              inset: 0, 
+              zIndex: 1000, 
+              background: 'rgba(10,10,10,0.98)', 
+              display: 'flex', 
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem 3rem', color: 'white' }}>
-              <span style={{ fontSize: '1.25rem', fontWeight: 500, fontFamily: 'Playfair Display' }}>{project.name} • Visuals</span>
-              <button onClick={() => setShowGallery(false)} style={{ background: 'none', color: 'white', border: '1px solid rgba(255,255,255,0.2)', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem 3rem', color: 'white', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <span style={{ fontSize: '1.25rem', fontWeight: 500, fontFamily: 'Playfair Display' }}>
+                {project.name} • {lightboxTitle}
+              </span>
+              <button 
+                onClick={() => setShowGallery(false)} 
+                style={{ 
+                  background: 'none', 
+                  color: 'white', 
+                  border: '1px solid rgba(255,255,255,0.2)', 
+                  width: '40px', 
+                  height: '40px', 
+                  borderRadius: '50%', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  cursor: 'pointer'
+                }}
+              >
                 <X size={20} />
               </button>
             </div>
             
-            <div style={{ flex: 1, display: 'flex', overflowX: 'auto', padding: '2rem', gap: '2rem', alignItems: 'center' }} className="gallery-scroll">
-              {galleryImages.map((img, idx) => (
-                <div key={idx} style={{ minWidth: '75vw', height: '75vh', borderRadius: '16px', overflow: 'hidden' }}>
-                  <img src={img} alt={`Full Gallery ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-              ))}
+            {/* Image Viewer Container */}
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', padding: '1rem 3rem' }}>
+              {/* Prev Button */}
+              {lightboxImages.length > 1 && (
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveImg((prev) => (prev === 0 ? lightboxImages.length - 1 : prev - 1));
+                  }}
+                  style={{
+                    position: 'absolute',
+                    left: '2rem',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: 'white',
+                    width: '50px',
+                    height: '50px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    zIndex: 10,
+                    transition: '0.3s'
+                  }}
+                >
+                  <ChevronLeft size={24} />
+                </button>
+              )}
+
+              {/* Central Image with loading spinner */}
+              <div style={{ position: 'relative', maxWidth: '85vw', maxHeight: '70vh', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <ImageWithLoader 
+                  src={lightboxImages[activeImg]} 
+                  alt={`${lightboxTitle} ${activeImg + 1}`} 
+                  style={{ 
+                    maxWidth: '100%', 
+                    maxHeight: '70vh', 
+                    objectFit: 'contain',
+                    borderRadius: '8px',
+                    boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
+                  }} 
+                />
+              </div>
+
+              {/* Next Button */}
+              {lightboxImages.length > 1 && (
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveImg((prev) => (prev === lightboxImages.length - 1 ? 0 : prev + 1));
+                  }}
+                  style={{
+                    position: 'absolute',
+                    right: '2rem',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: 'white',
+                    width: '50px',
+                    height: '50px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    zIndex: 10,
+                    transition: '0.3s'
+                  }}
+                >
+                  <ChevronRight size={24} />
+                </button>
+              )}
             </div>
             
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem' }}>
-              Swipe or scroll to navigate
+            {/* Footer / Counter */}
+            <div style={{ padding: '1.5rem', textAlign: 'center', color: 'rgba(255,255,255,0.6)', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <span style={{ fontSize: '1rem', fontWeight: 500 }}>
+                {activeImg + 1} / {lightboxImages.length}
+              </span>
+              <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>
+                Use arrows to navigate
+              </span>
             </div>
           </motion.div>
         )}
