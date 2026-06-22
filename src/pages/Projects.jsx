@@ -63,7 +63,21 @@ const Projects = () => {
           </div>
           
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '3rem' }}>Loading projects...</div>
+            <div className="grid-3">
+              {[1, 2, 3].map((n) => (
+                <div key={n} className="skeleton-card">
+                  <div className="skeleton skeleton-img"></div>
+                  <div className="skeleton-content">
+                    <div className="skeleton skeleton-title"></div>
+                    <div className="skeleton skeleton-text" style={{ marginTop: '0.5rem' }}></div>
+                    <div className="skeleton skeleton-text-short"></div>
+                    <div className="skeleton-footer">
+                      <div className="skeleton" style={{ height: '16px', width: '50%' }}></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
             <div className="grid-3">
               {projects
@@ -84,8 +98,8 @@ const Projects = () => {
                   className="card"
                   style={{ display: 'flex', flexDirection: 'column' }}
                 >
-                  <div style={{ position: 'relative', height: '280px' }}>
-                    <img src={project.coverImageUrl || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'} alt={project.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ position: 'relative', height: '280px', backgroundColor: '#F3ECE3' }}>
+                    <img src={project.coverImageUrl || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'} alt={project.name} className="lazy-image" onLoad={(e) => e.target.classList.add('loaded')} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     <div style={{ position: 'absolute', top: '0', left: '0', width: '100%', height: '100%', background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}></div>
                     <div style={{ position: 'absolute', bottom: '1.5rem', left: '1.5rem' }}>
                       <span className={`badge ${(project.status === 'Ongoing' || project.status === 'Under Construction') ? 'badge-ongoing' : 'badge-completed'}`} style={{ backgroundColor: project.status === 'Completed' ? 'var(--success)' : 'var(--gold-dark)' }}>

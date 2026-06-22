@@ -36,7 +36,7 @@ const AdminLogin = () => {
         flexDirection: 'column', 
         justifyContent: 'center', 
         padding: '4rem', 
-        backgroundImage: 'url(https://imcmvlmkbdooggmcwflp.supabase.co/storage/v1/object/sign/Logo/home_about_2.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mMGQ3ZWNmOC00MWQ5LTQwNmUtODRlMy0zNmQ0NTlmOTU2MzQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJMb2dvL2hvbWVfYWJvdXRfMi5qcGciLCJpYXQiOjE3Nzg3Mzk4OTQsImV4cCI6MTgxMDI3NTg5NH0.2rkzZDVkAYrdM8S0_3SsU9WTM6_TPPBma2vMNPQAr78)',
+        backgroundImage: 'url(/assets/images/admin_login_image.webp)',
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       }} className="login-visual">

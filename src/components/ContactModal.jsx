@@ -75,7 +75,7 @@ const ContactModal = ({ isOpen, onClose }) => {
                   <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(197, 144, 79, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gold-dark)', flexShrink: 0 }}>📍</div>
                   <div>
                     <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Office Address</p>
-                    <p style={{ fontWeight: 500, color: '#3E2723', fontSize: '0.95rem' }}>123 Builder Square, Dadar, Mumbai</p>
+                    <p style={{ fontWeight: 500, color: '#3E2723', fontSize: '0.95rem', lineHeight: '1.4' }}>Shop No 17, SAI Plaza Chs Ltd, Plot No 16, Sector 15A, New Panvel, Navi Mumbai - 410206</p>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem' }}>

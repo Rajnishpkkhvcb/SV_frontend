@@ -231,3 +231,79 @@ ul {
 ::-webkit-scrollbar-track { background: var(--bg-color); }
 ::-webkit-scrollbar-thumb { background: var(--gold-light); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--gold-dark); }
+
+/* Skeleton Loading Animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #F3ECE3 25%, #E7DBCF 50%, #F3ECE3 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite linear;
+  border-radius: 4px;
+}
+
+.skeleton-card {
+  background: var(--white);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+  border: 1px solid rgba(226, 213, 196, 0.5);
+  display: flex;
+  flex-direction: column;
+  height: 420px;
+}
+
+.skeleton-img {
+  height: 240px;
+  width: 100%;
+}
+
+.skeleton-content {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 1rem;
+}
+
+.skeleton-title {
+  height: 24px;
+  width: 60%;
+}
+
+.skeleton-text {
+  height: 16px;
+  width: 90%;
+}
+
+.skeleton-text-short {
+  height: 16px;
+  width: 40%;
+}
+
+.skeleton-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border-color);
+  padding-top: 1.5rem;
+  height: 40px;
+  width: 100%;
+}
+
+/* Image Fade-In Transition */
+.lazy-image {
+  opacity: 0;
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lazy-image.loaded {
+  opacity: 1;
+}
+
+

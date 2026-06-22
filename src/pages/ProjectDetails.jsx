@@ -74,13 +74,15 @@ const ProjectDetails = () => {
       <Navbar />
       
       {/* Hero Section */}
-      <section style={{ height: '70vh', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ height: '70vh', position: 'relative', overflow: 'hidden', backgroundColor: '#111' }}>
         <motion.img 
           initial={{ scale: 1.1 }}
           animate={{ scale: 1 }}
           transition={{ duration: 2, ease: 'easeOut' }}
           src={project.coverImageUrl || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'} 
           alt={project.name} 
+          className="lazy-image"
+          onLoad={(e) => e.target.classList.add('loaded')}
           style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
         />
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(to top, rgba(10,10,10,0.8) 0%, rgba(10,10,10,0.1) 100%)' }}></div>
@@ -171,7 +173,8 @@ const ProjectDetails = () => {
                         padding: '1rem', 
                         borderRadius: '16px', 
                         border: '1px solid var(--border-color)',
-                        cursor: 'zoom-in'
+                        cursor: 'zoom-in',
+                        backgroundColor: '#F3ECE3'
                       }}
                       onClick={() => {
                         // Optionally open in gallery or separate viewer
@@ -179,7 +182,7 @@ const ProjectDetails = () => {
                         // find index of this layout in the total gallery list if you want to integrate
                       }}
                     >
-                      <img src={layout} alt={`Layout ${i + 1}`} style={{ width: '100%', height: 'auto', borderRadius: '12px' }} />
+                      <img src={layout} alt={`Layout ${i + 1}`} className="lazy-image" onLoad={(e) => e.target.classList.add('loaded')} style={{ width: '100%', height: 'auto', borderRadius: '12px' }} />
                       <p style={{ textAlign: 'center', marginTop: '1rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Layout Plan {i + 1}</p>
                     </motion.div>
                   ))}
@@ -201,9 +204,9 @@ const ProjectDetails = () => {
                     <div 
                       key={idx} 
                       onClick={() => { setShowGallery(true); setActiveImg(idx); }}
-                      style={{ height: '300px', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer', position: 'relative' }}
+                      style={{ height: '300px', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer', position: 'relative', backgroundColor: '#F3ECE3' }}
                     >
-                      <img src={img} alt={`Gallery ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={img} alt={`Gallery ${idx}`} className="lazy-image" onLoad={(e) => e.target.classList.add('loaded')} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       {idx === 2 && remainingCount > 0 && (
                         <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '1.5rem', fontWeight: 600 }}>
                           +{remainingCount} Photos

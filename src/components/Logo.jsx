@@ -4,7 +4,7 @@ const Logo = ({ className = '', style = {}, textStyle = {}, showText = true, isD
   return (
     <div className={`logo-container ${className}`} style={{ display: 'flex', alignItems: 'center', gap: '1rem', ...style }}>
       <img 
-        src="https://imcmvlmkbdooggmcwflp.supabase.co/storage/v1/object/sign/Logo/SiddhiVinayak_Logo.jpeg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mMGQ3ZWNmOC00MWQ5LTQwNmUtODRlMy0zNmQ0NTlmOTU2MzQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJMb2dvL1NpZGRoaVZpbmF5YWtfTG9nby5qcGVnIiwiaWF0IjoxNzc4MjIxNTQyLCJleHAiOjE4MDk3NTc1NDJ9.-rHbZ_CQ0MqAHyTJB162eFi_J5sjPbjSjgwwk4T2bPk" 
+        src="/assets/images/SiddhiVinayak_Logo.webp" 
         alt="Siddhivinayak Builders Logo" 
         style={{ 
           height: '60px', 

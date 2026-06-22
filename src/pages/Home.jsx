@@ -59,7 +59,7 @@ const Home = () => {
       
       {/* Hero Section */}
       <section className="hero-section" style={{
-        backgroundImage: 'url(https://imcmvlmkbdooggmcwflp.supabase.co/storage/v1/object/sign/Logo/home_about_2.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mMGQ3ZWNmOC00MWQ5LTQwNmUtODRlMy0zNmQ0NTlmOTU2MzQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJMb2dvL2hvbWVfYWJvdXRfMi5qcGciLCJpYXQiOjE3Nzg3Mzk4OTQsImV4cCI6MTgxMDI3NTg5NH0.2rkzZDVkAYrdM8S0_3SsU9WTM6_TPPBma2vMNPQAr78)',
+        backgroundImage: 'url(/assets/images/home_hero_bg.webp)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         padding: '0 2rem'
@@ -104,11 +104,11 @@ const Home = () => {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'stretch' }}>
-            <div style={{ borderRadius: '16px', overflow: 'hidden', height: '400px', transform: 'translateY(2rem)' }}>
-              <img src="https://imcmvlmkbdooggmcwflp.supabase.co/storage/v1/object/sign/Logo/home_about_1.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mMGQ3ZWNmOC00MWQ5LTQwNmUtODRlMy0zNmQ0NTlmOTU2MzQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJMb2dvL2hvbWVfYWJvdXRfMS5qcGciLCJpYXQiOjE3Nzg3Mzk4NzUsImV4cCI6MTgxMDI3NTg3NX0.RlPEun_dzSsq8UTAVTP94LKmcyLy18NqE9GSSD18-SA" alt="Keys and house" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div style={{ borderRadius: '16px', overflow: 'hidden', height: '400px', transform: 'translateY(2rem)', backgroundColor: '#F3ECE3' }}>
+              <img src="/assets/images/home_about_1.webp" alt="Keys and house" className="lazy-image" onLoad={(e) => e.target.classList.add('loaded')} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
-            <div style={{ borderRadius: '16px', overflow: 'hidden', height: '400px' }}>
-              <img src="https://imcmvlmkbdooggmcwflp.supabase.co/storage/v1/object/sign/Logo/home_about_2.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mMGQ3ZWNmOC00MWQ5LTQwNmUtODRlMy0zNmQ0NTlmOTU2MzQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJMb2dvL2hvbWVfYWJvdXRfMi5qcGciLCJpYXQiOjE3Nzg3Mzk4OTQsImV4cCI6MTgxMDI3NTg5NH0.2rkzZDVkAYrdM8S0_3SsU9WTM6_TPPBma2vMNPQAr78" alt="Building" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div style={{ borderRadius: '16px', overflow: 'hidden', height: '400px', backgroundColor: '#F3ECE3' }}>
+              <img src="/assets/images/home_about_2.webp" alt="Building" className="lazy-image" onLoad={(e) => e.target.classList.add('loaded')} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
           </motion.div>
           
@@ -128,7 +128,21 @@ const Home = () => {
           </motion.div>
           
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '3rem' }}>Loading projects...</div>
+            <div className="grid-3">
+              {[1, 2, 3].map((n) => (
+                <div key={n} className="skeleton-card">
+                  <div className="skeleton skeleton-img"></div>
+                  <div className="skeleton-content">
+                    <div className="skeleton skeleton-title"></div>
+                    <div className="skeleton skeleton-text" style={{ marginTop: '0.5rem' }}></div>
+                    <div className="skeleton skeleton-text-short"></div>
+                    <div className="skeleton-footer">
+                      <div className="skeleton" style={{ height: '16px', width: '50%' }}></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
             <div className="grid-3">
               {projects.map((project, index) => (
@@ -140,8 +154,8 @@ const Home = () => {
                   transition={{ delay: index * 0.1 }}
                   style={{ background: 'var(--white)', borderRadius: '12px', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 10px 30px rgba(0,0,0,0.03)', position: 'relative' }}
                 >
-                  <div style={{ position: 'relative', height: '240px' }}>
-                    <img src={project.coverImageUrl || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'} alt={project.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ position: 'relative', height: '240px', backgroundColor: '#F3ECE3' }}>
+                    <img src={project.coverImageUrl || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'} alt={project.name} className="lazy-image" onLoad={(e) => e.target.classList.add('loaded')} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     <div style={{ position: 'absolute', bottom: '1rem', left: '1rem', zIndex: 2 }}>
                       <span style={{ background: project.status === 'Completed' ? 'var(--success)' : '#D46A40', color: 'var(--white)', padding: '6px 12px', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.05em', borderRadius: '4px', textTransform: 'uppercase' }}>
                         • {project.status === 'Ongoing' ? 'Under Construction' : project.status}

@@ -77,7 +77,7 @@ const Footer = () => {
               <li style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                 <div style={{ color: 'var(--gold-primary)', marginTop: '4px' }}><MapPin size={20} /></div>
                 <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.95rem', lineHeight: '1.6' }}>
-                  123 Builder Square, Dadar West,<br />Mumbai, Maharashtra - 400028
+                  Shop No 17, SAI Plaza Chs Ltd, Plot No 16,<br />Sector 15A, New Panvel, Navi Mumbai - 410206
                 </div>
               </li>
               <li style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
