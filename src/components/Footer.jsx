@@ -80,9 +80,12 @@ const Footer = () => {
                   Shop No 17, SAI Plaza Chs Ltd, Plot No 16,<br />Sector 15A, New Panvel, Navi Mumbai - 410206
                 </div>
               </li>
-              <li style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                <div style={{ color: 'var(--gold-primary)' }}><Phone size={20} /></div>
-                <a href="tel:+919876543210" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.95rem' }}>+91 98765 43210</a>
+              <li style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                <div style={{ color: 'var(--gold-primary)', marginTop: '4px' }}><Phone size={20} /></div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <a href="tel:+918382838260" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.95rem' }}>+91 83828 38260</a>
+                  <a href="tel:+918382838297" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.95rem' }}>+91 83828 38297</a>
+                </div>
               </li>
               <li style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                 <div style={{ color: 'var(--gold-primary)' }}><Mail size={20} /></div>

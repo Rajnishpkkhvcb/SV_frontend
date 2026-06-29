@@ -5,11 +5,13 @@ import api from '../config/api';
 const ContactModal = ({ isOpen, onClose }) => {
   const [projects, setProjects] = useState([]);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '', projectId: '' });
+  const [errors, setErrors] = useState({});
   const [formStatus, setFormStatus] = useState(null);
 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      setErrors({});
       const fetchProjects = async () => {
         try {
           const res = await api.get('/projects');
@@ -23,12 +25,46 @@ const ContactModal = ({ isOpen, onClose }) => {
     return () => { document.body.style.overflow = 'auto'; };
   }, [isOpen]);
 
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Name: Required, min 3 chars
+    if (!formData.name || formData.name.trim().length < 3) {
+      newErrors.name = 'Full name must be at least 3 characters long';
+    }
+
+    // Email: Required, basic email regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email) {
+      newErrors.email = 'Email address is required';
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    // Phone: Required, 10 digit Indian number starting with 6-9 or generic international
+    const cleanPhone = formData.phone.replace(/[^0-9]/g, '');
+    const isIndian = cleanPhone.length === 10 && /^[6-9]/.test(cleanPhone);
+    const isIntl = cleanPhone.length >= 10 && cleanPhone.length <= 15;
+    if (!formData.phone) {
+      newErrors.phone = 'Mobile number is required';
+    } else if (!isIndian && !isIntl) {
+      newErrors.phone = 'Please enter a valid 10-digit mobile number';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: '' });
+    }
   };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
     setFormStatus('submitting');
     try {
       await api.post('/enquiries', {
@@ -37,6 +73,7 @@ const ContactModal = ({ isOpen, onClose }) => {
       });
       setFormStatus('success');
       setFormData({ name: '', email: '', phone: '', message: '', projectId: '' });
+      setErrors({});
       setTimeout(() => {
         setFormStatus(null);
         onClose();
@@ -59,7 +96,7 @@ const ContactModal = ({ isOpen, onClose }) => {
         <motion.div 
           className="contact-modal-container"
           initial={{ opacity: 0, y: 50, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-          style={{ position: 'relative', width: '95%', maxWidth: '1000px', background: 'var(--white)', borderRadius: '16px', overflow: 'hidden', display: 'flex', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', maxHeight: '90vh' }}
+          style={{ position: 'relative', width: '95%', maxWidth: '1000px', background: 'var(--white)', borderRadius: '16px', overflow: 'hidden', display: 'flex', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', maxHeight: '90vh', zIndex: 10 }}
         >
           {/* Close Button */}
           <button onClick={onClose} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'var(--white)', border: '1px solid var(--border-color)', width: '40px', height: '40px', borderRadius: '50%', fontSize: '1.5rem', cursor: 'pointer', zIndex: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>×</button>
@@ -82,7 +119,10 @@ const ContactModal = ({ isOpen, onClose }) => {
                   <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(197, 144, 79, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gold-dark)', flexShrink: 0 }}>📞</div>
                   <div>
                     <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Phone</p>
-                    <p style={{ fontWeight: 500, color: '#3E2723', fontSize: '0.95rem' }}>+91 98765 43210</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      <a href="tel:+918382838260" style={{ fontWeight: 500, color: '#3E2723', fontSize: '0.95rem', textDecoration: 'none' }}>+91 83828 38260</a>
+                      <a href="tel:+918382838297" style={{ fontWeight: 500, color: '#3E2723', fontSize: '0.95rem', textDecoration: 'none' }}>+91 83828 38297</a>
+                    </div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem' }}>
@@ -102,16 +142,19 @@ const ContactModal = ({ isOpen, onClose }) => {
                 <div className="contact-form-row">
                   <div className="form-group">
                     <label className="form-label" style={{ color: 'var(--text-secondary)' }}>Full Name</label>
-                    <input type="text" name="name" className="form-input" value={formData.name} onChange={handleInputChange} required placeholder="Rahul Sharma" style={{ background: '#F8F9FA' }} />
+                    <input type="text" name="name" className="form-input" value={formData.name} onChange={handleInputChange} required placeholder="Rahul Sharma" style={{ background: '#F8F9FA', borderColor: errors.name ? '#EF4444' : 'var(--border-color)' }} />
+                    {errors.name && <span style={{ color: '#EF4444', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>{errors.name}</span>}
                   </div>
                   <div className="form-group">
                     <label className="form-label" style={{ color: 'var(--text-secondary)' }}>Phone Number</label>
-                    <input type="tel" name="phone" className="form-input" value={formData.phone} onChange={handleInputChange} required placeholder="+91 98765 43210" style={{ background: '#F8F9FA' }} />
+                    <input type="tel" name="phone" className="form-input" value={formData.phone} onChange={handleInputChange} required placeholder="+91 83828 38260" style={{ background: '#F8F9FA', borderColor: errors.phone ? '#EF4444' : 'var(--border-color)' }} />
+                    {errors.phone && <span style={{ color: '#EF4444', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>{errors.phone}</span>}
                   </div>
                 </div>
                 <div className="form-group">
                   <label className="form-label" style={{ color: 'var(--text-secondary)' }}>Email Address</label>
-                  <input type="email" name="email" className="form-input" value={formData.email} onChange={handleInputChange} required placeholder="rahul@example.com" style={{ background: '#F8F9FA' }} />
+                  <input type="email" name="email" className="form-input" value={formData.email} onChange={handleInputChange} required placeholder="rahul@example.com" style={{ background: '#F8F9FA', borderColor: errors.email ? '#EF4444' : 'var(--border-color)' }} />
+                  {errors.email && <span style={{ color: '#EF4444', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>{errors.email}</span>}
                 </div>
                 <div className="form-group">
                   <label className="form-label" style={{ color: 'var(--text-secondary)' }}>Interested In</label>

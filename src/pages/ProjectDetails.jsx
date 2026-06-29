@@ -52,6 +52,7 @@ const ProjectDetails = () => {
 
   // Brochure form state
   const [brochureForm, setBrochureForm] = useState({ name: '', email: '', phone: '' });
+  const [brochureErrors, setBrochureErrors] = useState({});
   const [brochureStatus, setBrochureStatus] = useState(null);
 
   useEffect(() => {
@@ -68,8 +69,39 @@ const ProjectDetails = () => {
     fetchProject();
   }, [slug]);
 
+  const validateBrochureForm = () => {
+    const newErrors = {};
+
+    // Name Validation
+    if (!brochureForm.name || brochureForm.name.trim().length < 3) {
+      newErrors.name = 'Name must be at least 3 characters';
+    }
+
+    // Email Validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!brochureForm.email) {
+      newErrors.email = 'Email address is required';
+    } else if (!emailRegex.test(brochureForm.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    // Phone Validation
+    const cleanPhone = brochureForm.phone.replace(/[^0-9]/g, '');
+    const isIndian = cleanPhone.length === 10 && /^[6-9]/.test(cleanPhone);
+    const isIntl = cleanPhone.length >= 10 && cleanPhone.length <= 15;
+    if (!brochureForm.phone) {
+      newErrors.phone = 'Mobile number is required';
+    } else if (!isIndian && !isIntl) {
+      newErrors.phone = 'Please enter a valid 10-digit mobile number';
+    }
+
+    setBrochureErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleBrochureDownload = async (e) => {
     e.preventDefault();
+    if (!validateBrochureForm()) return;
     setBrochureStatus('submitting');
     try {
       await api.post('/enquiries', {
@@ -78,6 +110,7 @@ const ProjectDetails = () => {
         projectId: project.id
       });
       setBrochureStatus('success');
+      setBrochureErrors({});
       if (project.brochureUrl) {
         window.open(project.brochureUrl, '_blank');
       }
@@ -293,16 +326,20 @@ const ProjectDetails = () => {
                   <button onClick={() => setBrochureStatus(null)} style={{ color: 'var(--gold-primary)', background: 'none', border: '1px solid var(--gold-primary)', padding: '10px 20px', borderRadius: '8px' }}>Send Again</button>
                 </div>
               ) : (
-                <form onSubmit={handleBrochureDownload} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <form onSubmit={handleBrochureDownload} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                   <div style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
                     <input 
                       type="text" 
                       placeholder="Full Name" 
                       required 
                       value={brochureForm.name} 
-                      onChange={e => setBrochureForm({...brochureForm, name: e.target.value})} 
+                      onChange={e => {
+                        setBrochureForm({...brochureForm, name: e.target.value});
+                        if (brochureErrors.name) setBrochureErrors({...brochureErrors, name: ''});
+                      }} 
                       style={{ background: 'none', border: 'none', color: 'white', width: '100%', outline: 'none', fontSize: '1rem' }}
                     />
+                    {brochureErrors.name && <span style={{ color: '#EF4444', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>{brochureErrors.name}</span>}
                   </div>
                   <div style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
                     <input 
@@ -310,9 +347,13 @@ const ProjectDetails = () => {
                       placeholder="Email Address" 
                       required 
                       value={brochureForm.email} 
-                      onChange={e => setBrochureForm({...brochureForm, email: e.target.value})} 
+                      onChange={e => {
+                        setBrochureForm({...brochureForm, email: e.target.value});
+                        if (brochureErrors.email) setBrochureErrors({...brochureErrors, email: ''});
+                      }} 
                       style={{ background: 'none', border: 'none', color: 'white', width: '100%', outline: 'none', fontSize: '1rem' }}
                     />
+                    {brochureErrors.email && <span style={{ color: '#EF4444', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>{brochureErrors.email}</span>}
                   </div>
                   <div style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
                     <input 
@@ -320,9 +361,13 @@ const ProjectDetails = () => {
                       placeholder="Phone Number" 
                       required 
                       value={brochureForm.phone} 
-                      onChange={e => setBrochureForm({...brochureForm, phone: e.target.value})} 
+                      onChange={e => {
+                        setBrochureForm({...brochureForm, phone: e.target.value});
+                        if (brochureErrors.phone) setBrochureErrors({...brochureErrors, phone: ''});
+                      }} 
                       style={{ background: 'none', border: 'none', color: 'white', width: '100%', outline: 'none', fontSize: '1rem' }}
                     />
+                    {brochureErrors.phone && <span style={{ color: '#EF4444', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>{brochureErrors.phone}</span>}
                   </div>
                   <button 
                     type="submit" 
@@ -337,14 +382,12 @@ const ProjectDetails = () => {
 
               <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                  {/* <a href={`tel:+919876543210`} style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--text-primary)', fontWeight: 600 }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--gold-dark)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Phone size={16} /></div>
-                  +91 98765 43210
-                </a> */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem' }}>
-                    {/* <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--gold-dark)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Info size={16} /></div> */}
-                    {/* Quick Response Guaranteed */}
-                    <Phone size={16} /> <span>+91 98765 43210</span>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem' }}>
+                    <Phone size={16} style={{ marginTop: '3px' }} /> 
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      <a href="tel:+918382838260" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>+91 83828 38260</a>
+                      <a href="tel:+918382838297" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>+91 83828 38297</a>
+                    </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem' }}>
                     <Mail size={16} /> <span>info@svbuilders.com</span>
