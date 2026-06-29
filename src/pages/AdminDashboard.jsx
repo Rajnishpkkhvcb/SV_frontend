@@ -27,6 +27,29 @@ const AdminDashboard = () => {
     coverImage: null, layoutImage: [], brochure: null, galleryImages: []
   });
 
+  const [existingCoverUrl, setExistingCoverUrl] = useState(null);
+  const [existingBrochureUrl, setExistingBrochureUrl] = useState(null);
+  const [existingGalleryUrls, setExistingGalleryUrls] = useState([]);
+  const [existingLayoutUrls, setExistingLayoutUrls] = useState([]);
+  const [existingLayoutNames, setExistingLayoutNames] = useState({});
+  const [newLayoutNames, setNewLayoutNames] = useState([]);
+
+  const getLayoutNameFromUrl = (url, fallback = '') => {
+    try {
+      const match = url.match(/[?&]name=([^&#]+)/);
+      if (match) return decodeURIComponent(match[1]);
+    } catch (e) {}
+    return fallback;
+  };
+
+  const getLocalPreview = (file) => {
+    try {
+      return URL.createObjectURL(file);
+    } catch (e) {
+      return '';
+    }
+  };
+
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -96,16 +119,78 @@ const AdminDashboard = () => {
     });
     setEditProjectId(project.id);
     setFiles({ coverImage: null, layoutImage: [], brochure: null, galleryImages: [] });
+    
+    setExistingCoverUrl(project.coverImageUrl || null);
+    setExistingBrochureUrl(project.brochureUrl || null);
+    setExistingGalleryUrls(project.galleryImageUrls || []);
+    setExistingLayoutUrls(project.layoutImageUrls || []);
+    
+    const names = {};
+    (project.layoutImageUrls || []).forEach(url => {
+      names[url] = getLayoutNameFromUrl(url);
+    });
+    setExistingLayoutNames(names);
+    setNewLayoutNames([]);
+    
     setActiveTab('addProject');
     setIsMobileMenuOpen(false);
   };
 
   const handleFileChange = (e, field) => {
     if (field === 'galleryImages' || field === 'layoutImage') {
-      setFiles({ ...files, [field]: Array.from(e.target.files) });
+      const newFiles = Array.from(e.target.files);
+      const existing = files[field] || [];
+      const merged = [...existing, ...newFiles];
+      setFiles({ ...files, [field]: merged });
+      if (field === 'layoutImage') {
+        setNewLayoutNames(prev => [...prev, ...newFiles.map(() => '')]);
+      }
     } else {
       setFiles({ ...files, [field]: e.target.files[0] });
     }
+    // Reset the input so the same file can be re-selected
+    e.target.value = '';
+  };
+
+  const handleNewLayoutNameChange = (index, value) => {
+    const updated = [...newLayoutNames];
+    updated[index] = value;
+    setNewLayoutNames(updated);
+  };
+
+  const handleExistingLayoutNameChange = (url, value) => {
+    setExistingLayoutNames({
+      ...existingLayoutNames,
+      [url]: value
+    });
+  };
+
+  const handleRemoveExistingLayout = (urlToRemove) => {
+    setExistingLayoutUrls(existingLayoutUrls.filter(url => url !== urlToRemove));
+    const updatedNames = { ...existingLayoutNames };
+    delete updatedNames[urlToRemove];
+    setExistingLayoutNames(updatedNames);
+  };
+
+  const handleRemoveExistingGallery = (urlToRemove) => {
+    setExistingGalleryUrls(existingGalleryUrls.filter(url => url !== urlToRemove));
+  };
+
+  const handleRemoveNewLayout = (indexToRemove) => {
+    setFiles({ ...files, layoutImage: files.layoutImage.filter((_, i) => i !== indexToRemove) });
+    setNewLayoutNames(newLayoutNames.filter((_, i) => i !== indexToRemove));
+  };
+
+  const handleRemoveNewGallery = (indexToRemove) => {
+    setFiles({ ...files, galleryImages: files.galleryImages.filter((_, i) => i !== indexToRemove) });
+  };
+
+  const handleRemoveExistingCover = () => {
+    setExistingCoverUrl(null);
+  };
+
+  const handleRemoveExistingBrochure = () => {
+    setExistingBrochureUrl(null);
   };
 
   const handleAddProject = async (e) => {
@@ -118,12 +203,29 @@ const AdminDashboard = () => {
         formData.append(key, newProject[key]);
       }
     });
+
+    if (editProjectId) {
+      formData.append('coverImageUrl', existingCoverUrl || '');
+      formData.append('brochureUrl', existingBrochureUrl || '');
+      formData.append('existingGalleryImageUrls', JSON.stringify(existingGalleryUrls));
+      
+      const finalExistingLayoutUrls = existingLayoutUrls.map(url => {
+        const cleanUrl = url.split('?')[0];
+        const name = existingLayoutNames[url];
+        if (name && name.trim()) {
+          return `${cleanUrl}?name=${encodeURIComponent(name.trim())}`;
+        }
+        return cleanUrl;
+      });
+      formData.append('existingLayoutImageUrls', JSON.stringify(finalExistingLayoutUrls));
+    }
     
     if (files.coverImage) formData.append('coverImage', files.coverImage);
     if (files.layoutImage && files.layoutImage.length > 0) {
       files.layoutImage.forEach(file => {
         formData.append('layoutImage', file);
       });
+      formData.append('newLayoutNames', JSON.stringify(newLayoutNames));
     }
     if (files.brochure) formData.append('brochure', files.brochure);
     if (files.galleryImages && files.galleryImages.length > 0) {
@@ -153,6 +255,12 @@ const AdminDashboard = () => {
         });
         setFiles({ coverImage: null, layoutImage: [], brochure: null, galleryImages: [] });
         setEditProjectId(null);
+        setExistingCoverUrl(null);
+        setExistingBrochureUrl(null);
+        setExistingGalleryUrls([]);
+        setExistingLayoutUrls([]);
+        setExistingLayoutNames({});
+        setNewLayoutNames([]);
         setActiveTab('projects');
       }, 1000);
     } catch (err) {
@@ -161,6 +269,9 @@ const AdminDashboard = () => {
       setLoadingForm(false);
     }
   };
+
+  const featuredCount = projects.filter(p => p.featured).length;
+  const isFeaturedDisabled = featuredCount >= 3 && !newProject.featured;
 
   const ORANGE = '#FF7043';
   const ORANGE_DARK = '#E64A19';
@@ -516,30 +627,219 @@ const AdminDashboard = () => {
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '1rem', background: '#F8FAFC', padding: '1rem', borderRadius: '12px' }}>
-                  <input type="checkbox" id="featured" checked={newProject.featured} onChange={(e) => setNewProject({...newProject, featured: e.target.checked})} style={{ width: '20px', height: '20px', accentColor: ORANGE }} />
-                  <label htmlFor="featured" style={{ fontWeight: 600, cursor: 'pointer', color: '#334155' }}>Promote on Homepage Showcase</label>
+                  <input 
+                    type="checkbox" 
+                    id="featured" 
+                    checked={newProject.featured} 
+                    disabled={isFeaturedDisabled}
+                    onChange={(e) => setNewProject({...newProject, featured: e.target.checked})} 
+                    style={{ width: '20px', height: '20px', accentColor: ORANGE, cursor: isFeaturedDisabled ? 'not-allowed' : 'pointer' }} 
+                  />
+                  <label htmlFor="featured" style={{ fontWeight: 600, cursor: isFeaturedDisabled ? 'not-allowed' : 'pointer', color: isFeaturedDisabled ? '#94A3B8' : '#334155' }}>
+                    Promote on Homepage Showcase
+                    {isFeaturedDisabled && (
+                      <span style={{ fontSize: '0.8rem', color: '#EF4444', fontWeight: 500, marginLeft: '0.5rem', textTransform: 'none' }}>
+                        (Max 3 featured projects reached)
+                      </span>
+                    )}
+                  </label>
                 </div>
               </div>
 
               <div style={{ marginBottom: '4rem' }}>
                 <h3 style={{ fontSize: '1.1rem', color: ORANGE, borderBottom: `2px solid ${ORANGE_LIGHT}`, paddingBottom: '0.75rem', marginBottom: '2rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Media Library</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                  
+                  {/* Cover Image */}
                   <div className="form-group">
                     <label className="form-label" style={{ color: '#475569' }}>Primary Cover Image {editProjectId ? '(Optional)' : '*'}</label>
-                    <input type="file" className="form-input" style={{ padding: '12px', borderStyle: 'dashed' }} accept="image/*" onChange={(e) => handleFileChange(e, 'coverImage')} required={!editProjectId} />
+                    <input type="file" id="coverImageInput" style={{ display: 'none' }} accept="image/*" onChange={(e) => handleFileChange(e, 'coverImage')} />
+                    
+                    {files.coverImage ? (
+                      <div style={{ position: 'relative', display: 'inline-block', marginTop: '0.5rem' }}>
+                        <img src={getLocalPreview(files.coverImage)} alt="New Cover" style={{ width: '100%', maxHeight: '140px', objectFit: 'cover', borderRadius: '12px', border: '1px solid #E2E8F0' }} />
+                        <button type="button" onClick={() => { setFiles({...files, coverImage: null}); document.getElementById('coverImageInput').value = ''; }}
+                          style={{ position: 'absolute', top: '-6px', right: '-6px', background: '#EF4444', color: 'white', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', cursor: 'pointer', border: '2px solid white', boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>✕</button>
+                        <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748B', marginTop: '0.35rem' }}>New Cover Selected</span>
+                      </div>
+                    ) : existingCoverUrl ? (
+                      <div style={{ position: 'relative', display: 'inline-block', marginTop: '0.5rem' }}>
+                        <img src={existingCoverUrl} alt="Cover Preview" style={{ width: '100%', maxHeight: '140px', objectFit: 'cover', borderRadius: '12px', border: '1px solid #E2E8F0' }} />
+                        <button type="button" onClick={handleRemoveExistingCover}
+                          style={{ position: 'absolute', top: '-6px', right: '-6px', background: '#EF4444', color: 'white', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', cursor: 'pointer', border: '2px solid white', boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>✕</button>
+                        <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748B', marginTop: '0.35rem' }}>Current Cover</span>
+                      </div>
+                    ) : null}
+
+                    {(!files.coverImage && !existingCoverUrl) && (
+                      <div onClick={() => document.getElementById('coverImageInput').click()}
+                        style={{ marginTop: '0.5rem', border: '2px dashed #CBD5E1', borderRadius: '12px', padding: '2rem', textAlign: 'center', cursor: 'pointer', transition: '0.2s', background: '#FAFBFC' }}>
+                        <span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem' }}>🖼️</span>
+                        <span style={{ color: ORANGE, fontWeight: 600, fontSize: '0.9rem' }}>Click to upload cover image</span>
+                        <span style={{ display: 'block', color: '#94A3B8', fontSize: '0.8rem', marginTop: '0.25rem' }}>PNG, JPG, WEBP supported</span>
+                      </div>
+                    )}
+                    {(files.coverImage || existingCoverUrl) && (
+                      <button type="button" onClick={() => document.getElementById('coverImageInput').click()}
+                        style={{ marginTop: '0.5rem', background: ORANGE_LIGHT, color: ORANGE, border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
+                        Replace Cover
+                      </button>
+                    )}
                   </div>
-                  <div className="form-group">
-                    <label className="form-label" style={{ color: '#475569' }}>Project Layouts (Multiple)</label>
-                    <input type="file" className="form-input" style={{ padding: '12px', borderStyle: 'dashed' }} accept="image/*" multiple onChange={(e) => handleFileChange(e, 'layoutImage')} />
-                  </div>
+
+                  {/* Brochure */}
                   <div className="form-group">
                     <label className="form-label" style={{ color: '#475569' }}>Brochure (PDF Document)</label>
-                    <input type="file" className="form-input" style={{ padding: '12px', borderStyle: 'dashed' }} accept="application/pdf" onChange={(e) => handleFileChange(e, 'brochure')} />
+                    <input type="file" id="brochureInput" style={{ display: 'none' }} accept="application/pdf" onChange={(e) => handleFileChange(e, 'brochure')} />
+                    
+                    {files.brochure ? (
+                      <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', background: '#F0FDF4', borderRadius: '12px', border: '1px solid #BBF7D0' }}>
+                        <span style={{ fontSize: '1.5rem' }}>📄</span>
+                        <div style={{ flex: 1, overflow: 'hidden' }}>
+                          <span style={{ fontSize: '0.85rem', color: '#16A34A', fontWeight: 600, display: 'block', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{files.brochure.name}</span>
+                          <span style={{ fontSize: '0.7rem', color: '#64748B' }}>New PDF selected</span>
+                        </div>
+                        <button type="button" onClick={() => { setFiles({...files, brochure: null}); document.getElementById('brochureInput').value = ''; }}
+                          style={{ background: '#FEF2F2', color: '#EF4444', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Remove</button>
+                      </div>
+                    ) : existingBrochureUrl ? (
+                      <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+                        <span style={{ fontSize: '1.5rem' }}>📄</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+                          <a href={existingBrochureUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.85rem', color: ORANGE, fontWeight: 600, textDecoration: 'underline', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>View Current Brochure</a>
+                          <span style={{ fontSize: '0.7rem', color: '#64748B' }}>PDF Document</span>
+                        </div>
+                        <button type="button" onClick={handleRemoveExistingBrochure}
+                          style={{ background: '#FEF2F2', color: '#EF4444', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Remove</button>
+                      </div>
+                    ) : null}
+
+                    {(!files.brochure && !existingBrochureUrl) && (
+                      <div onClick={() => document.getElementById('brochureInput').click()}
+                        style={{ marginTop: '0.5rem', border: '2px dashed #CBD5E1', borderRadius: '12px', padding: '2rem', textAlign: 'center', cursor: 'pointer', transition: '0.2s', background: '#FAFBFC' }}>
+                        <span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem' }}>📋</span>
+                        <span style={{ color: ORANGE, fontWeight: 600, fontSize: '0.9rem' }}>Click to upload brochure</span>
+                        <span style={{ display: 'block', color: '#94A3B8', fontSize: '0.8rem', marginTop: '0.25rem' }}>PDF files only</span>
+                      </div>
+                    )}
+                    {(files.brochure || existingBrochureUrl) && (
+                      <button type="button" onClick={() => document.getElementById('brochureInput').click()}
+                        style={{ marginTop: '0.5rem', background: ORANGE_LIGHT, color: ORANGE, border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
+                        Replace Brochure
+                      </button>
+                    )}
                   </div>
-                  <div className="form-group">
-                    <label className="form-label" style={{ color: '#475569' }}>Gallery Showcase (Multiple)</label>
-                    <input type="file" className="form-input" style={{ padding: '12px', borderStyle: 'dashed' }} accept="image/*" multiple onChange={(e) => handleFileChange(e, 'galleryImages')} />
+
+                  {/* Layouts */}
+                  <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                    <label className="form-label" style={{ color: '#475569' }}>Floor Plans & Layouts</label>
+                    <input type="file" id="layoutImageInput" style={{ display: 'none' }} accept="image/*" multiple onChange={(e) => handleFileChange(e, 'layoutImage')} />
+                    
+                    {/* Existing layouts (edit mode) */}
+                    {existingLayoutUrls.length > 0 && (
+                      <div style={{ marginBottom: '1rem' }}>
+                        <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748B', display: 'block', marginBottom: '0.75rem' }}>
+                          Current Layouts ({existingLayoutUrls.length})
+                        </label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          {existingLayoutUrls.map((url, index) => (
+                            <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: '#F8FAFC', padding: '0.75rem', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+                              <img src={url.split('?')[0]} alt={`Layout ${index}`} style={{ width: '70px', height: '50px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #CBD5E1' }} />
+                              <div style={{ flex: 1 }}>
+                                <input type="text" className="form-input" 
+                                  style={{ padding: '6px 10px', borderRadius: '8px', fontSize: '0.85rem' }} 
+                                  placeholder="e.g. 1 BHK Layout" 
+                                  value={existingLayoutNames[url] || ''} 
+                                  onChange={(e) => handleExistingLayoutNameChange(url, e.target.value)} />
+                              </div>
+                              <button type="button" onClick={() => handleRemoveExistingLayout(url)}
+                                style={{ background: '#FEF2F2', color: '#EF4444', border: 'none', padding: '8px 14px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>Remove</button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Newly selected layouts */}
+                    {files.layoutImage && files.layoutImage.length > 0 && (
+                      <div style={{ marginBottom: '1rem' }}>
+                        <label style={{ fontSize: '0.8rem', fontWeight: 600, color: ORANGE, display: 'block', marginBottom: '0.75rem' }}>
+                          New Layouts ({files.layoutImage.length})
+                        </label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          {files.layoutImage.map((file, index) => (
+                            <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: '#FFF7ED', padding: '0.75rem', borderRadius: '12px', border: '1px solid #FED7AA' }}>
+                              <img src={getLocalPreview(file)} alt={`New Layout ${index}`} style={{ width: '70px', height: '50px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #FFCCBC' }} />
+                              <div style={{ flex: 1 }}>
+                                <input type="text" className="form-input" 
+                                  style={{ padding: '6px 10px', borderRadius: '8px', fontSize: '0.85rem' }} 
+                                  placeholder="e.g. 2 BHK Layout" 
+                                  value={newLayoutNames[index] || ''} 
+                                  onChange={(e) => handleNewLayoutNameChange(index, e.target.value)} />
+                              </div>
+                              <button type="button" onClick={() => handleRemoveNewLayout(index)}
+                                style={{ background: '#FEF2F2', color: '#EF4444', border: 'none', padding: '8px 14px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>Remove</button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div onClick={() => document.getElementById('layoutImageInput').click()}
+                      style={{ border: '2px dashed #CBD5E1', borderRadius: '12px', padding: '1.25rem', textAlign: 'center', cursor: 'pointer', background: '#FAFBFC' }}>
+                      <span style={{ color: ORANGE, fontWeight: 600, fontSize: '0.9rem' }}>+ Add Layout Images</span>
+                      <span style={{ display: 'block', color: '#94A3B8', fontSize: '0.75rem', marginTop: '0.25rem' }}>Upload floor plans (multiple allowed)</span>
+                    </div>
                   </div>
+
+                  {/* Gallery */}
+                  <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                    <label className="form-label" style={{ color: '#475569' }}>Gallery Showcase</label>
+                    <input type="file" id="galleryImagesInput" style={{ display: 'none' }} accept="image/*" multiple onChange={(e) => handleFileChange(e, 'galleryImages')} />
+                    
+                    {/* Existing gallery (edit mode) */}
+                    {existingGalleryUrls.length > 0 && (
+                      <div style={{ marginBottom: '1rem' }}>
+                        <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748B', display: 'block', marginBottom: '0.75rem' }}>
+                          Current Images ({existingGalleryUrls.length})
+                        </label>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '0.75rem' }}>
+                          {existingGalleryUrls.map((url, index) => (
+                            <div key={index} style={{ position: 'relative', aspectRatio: '1/1', borderRadius: '10px', overflow: 'hidden', border: '1px solid #E2E8F0' }}>
+                              <img src={url} alt={`Gallery ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              <button type="button" onClick={() => handleRemoveExistingGallery(url)}
+                                style={{ position: 'absolute', top: '4px', right: '4px', background: '#EF4444', color: 'white', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', cursor: 'pointer', border: '1.5px solid white', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>✕</button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Newly selected gallery images */}
+                    {files.galleryImages && files.galleryImages.length > 0 && (
+                      <div style={{ marginBottom: '1rem' }}>
+                        <label style={{ fontSize: '0.8rem', fontWeight: 600, color: ORANGE, display: 'block', marginBottom: '0.75rem' }}>
+                          New Images ({files.galleryImages.length})
+                        </label>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '0.75rem' }}>
+                          {files.galleryImages.map((file, index) => (
+                            <div key={index} style={{ position: 'relative', aspectRatio: '1/1', borderRadius: '10px', overflow: 'hidden', border: '1px solid #FED7AA' }}>
+                              <img src={getLocalPreview(file)} alt={`New Gallery ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              <button type="button" onClick={() => handleRemoveNewGallery(index)}
+                                style={{ position: 'absolute', top: '4px', right: '4px', background: '#EF4444', color: 'white', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', cursor: 'pointer', border: '1.5px solid white', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>✕</button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div onClick={() => document.getElementById('galleryImagesInput').click()}
+                      style={{ border: '2px dashed #CBD5E1', borderRadius: '12px', padding: '1.25rem', textAlign: 'center', cursor: 'pointer', background: '#FAFBFC' }}>
+                      <span style={{ color: ORANGE, fontWeight: 600, fontSize: '0.9rem' }}>+ Add Gallery Images</span>
+                      <span style={{ display: 'block', color: '#94A3B8', fontSize: '0.75rem', marginTop: '0.25rem' }}>Upload showcase photos (multiple allowed)</span>
+                    </div>
+                  </div>
+
                 </div>
               </div>
 

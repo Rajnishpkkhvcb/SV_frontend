@@ -177,7 +177,18 @@ const Home = () => {
                       </div>
                       {project.configuration && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#333', fontSize: '0.875rem' }}>
-                          <span style={{ display: 'inline-block', width: '12px', height: '12px', background: '#333' }}></span> {project.configuration}
+                          <span style={{ display: 'inline-block', width: '12px', height: '12px', background: '#333' }}></span> 
+                          {(() => {
+                            try {
+                              if (project.configuration.startsWith('[') && project.configuration.endsWith(']')) {
+                                const parsed = JSON.parse(project.configuration);
+                                if (Array.isArray(parsed)) {
+                                  return parsed.join(', ');
+                                }
+                              }
+                            } catch (e) {}
+                            return project.configuration;
+                          })()}
                         </div>
                       )}
                     </div>

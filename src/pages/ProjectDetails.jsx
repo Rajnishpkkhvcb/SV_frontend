@@ -198,29 +198,40 @@ const ProjectDetails = () => {
               <div style={{ marginBottom: '5rem' }}>
                 <h2 style={{ fontSize: '2.25rem', fontFamily: 'Playfair Display', marginBottom: '2.5rem', color: 'var(--text-primary)' }}>Floor Plans & Layouts</h2>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
-                  {project.layoutImageUrls.map((layout, i) => (
-                    <motion.div 
-                      key={i}
-                      whileHover={{ scale: 1.02 }}
-                      style={{ 
-                        background: 'white', 
-                        padding: '1rem', 
-                        borderRadius: '16px', 
-                        border: '1px solid var(--border-color)',
-                        cursor: 'zoom-in',
-                        backgroundColor: '#F3ECE3'
-                      }}
-                      onClick={() => {
-                        setLightboxImages(project.layoutImageUrls || []);
-                        setLightboxTitle("Floor Plans");
-                        setActiveImg(i);
-                        setShowGallery(true);
-                      }}
-                    >
-                      <img src={layout} alt={`Layout ${i + 1}`} className="lazy-image" onLoad={(e) => e.target.classList.add('loaded')} style={{ width: '100%', height: 'auto', borderRadius: '12px' }} />
-                      <p style={{ textAlign: 'center', marginTop: '1rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Layout Plan {i + 1}</p>
-                    </motion.div>
-                  ))}
+                  {project.layoutImageUrls.map((layout, i) => {
+                    const cleanUrl = layout.split('?')[0];
+                    const layoutName = (() => {
+                      try {
+                        const match = layout.match(/[?&]name=([^&#]+)/);
+                        if (match) return decodeURIComponent(match[1]);
+                      } catch (e) {}
+                      return `Layout Plan ${i + 1}`;
+                    })();
+                    
+                    return (
+                      <motion.div 
+                        key={i}
+                        whileHover={{ scale: 1.02 }}
+                        style={{ 
+                          background: 'white', 
+                          padding: '1rem', 
+                          borderRadius: '16px', 
+                          border: '1px solid var(--border-color)',
+                          cursor: 'zoom-in',
+                          backgroundColor: '#F3ECE3'
+                        }}
+                        onClick={() => {
+                          setLightboxImages(project.layoutImageUrls.map(u => u.split('?')[0]) || []);
+                          setLightboxTitle("Floor Plans");
+                          setActiveImg(i);
+                          setShowGallery(true);
+                        }}
+                      >
+                        <img src={cleanUrl} alt={layoutName} className="lazy-image" onLoad={(e) => e.target.classList.add('loaded')} style={{ width: '100%', height: 'auto', borderRadius: '12px' }} />
+                        <p style={{ textAlign: 'center', marginTop: '1rem', color: 'var(--text-secondary)', fontWeight: 500 }}>{layoutName}</p>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </div>
             )}
